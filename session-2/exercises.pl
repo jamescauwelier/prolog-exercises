@@ -147,3 +147,5 @@ doublenextdigits(N) :-
     ;
     doublenextdigits(Rest)
   ).
+
+makelist(L).
