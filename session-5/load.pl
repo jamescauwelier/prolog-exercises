@@ -1,1 +1,2 @@
-:- consult(exercises).
+:- consult(reactions).
+:- consult(cubes).
