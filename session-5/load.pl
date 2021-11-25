@@ -1,2 +1,3 @@
 :- consult(reactions).
-:- consult(cubes).
+% :- consult(cubes).
+:- consult(pancakes).
