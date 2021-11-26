@@ -51,11 +51,19 @@ is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
 
 % naive_flipper(Fringe, Solution).
 
-  flipper([], _) :- fail.
-  flipper(Fringe, [GoalState|PreviousStates]) :-
+  flipper(StackOfPancakes, FlippingSolution) :-
+    % we use the pancake stack as the only element of a path to start from
+    FirstPath = [StackOfPancakes],
+    % to start, the fringe consists of just one path
+    Fringe = [FirstPath],
+    % execute breadth first search for a solution 
+    flipper_breadth_first(Fringe, FlippingSolution).
+
+  flipper_breadth_first([], _) :- fail.
+  flipper_breadth_first(Fringe, [GoalState|PreviousStates]) :-
     queue_remove(Fringe, [GoalState|PreviousStates], _),
     is_sorted(GoalState),!.
-  flipper(Fringe, Solution) :-
+  flipper_breadth_first(Fringe, Solution) :-
     % gets the next element to inspect
     queue_remove(Fringe, [CurrentState|PreviousStates], ShortenedFringe),
     % verifies that it is not fully sorted
@@ -66,4 +74,4 @@ is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
     queue_add(ShortenedFringe, NewStates, ExpandedFringe),
     print(ExpandedFringe), nl,
     % attempt to flip again on the next element in the fringe
-    flipper(ExpandedFringe, Solution),!.
+    flipper_breadth_first(ExpandedFringe, Solution),!.
