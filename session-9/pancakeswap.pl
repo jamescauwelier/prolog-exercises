@@ -1,5 +1,9 @@
 % Pancake flipping challenge
 
+append_2([], L, L).
+append_2([H|T], L2, [H|L4]) :-
+  append_2(T, L2, L4).
+
 % Generating problems
 
 countToN(0, R, R).
@@ -26,11 +30,11 @@ reverse_acc([H|T], I, Acc) :-
   reverse_acc(T, I, [H|Acc]).
 
 flip(L1, L2) :-
-  append(Part1, Part2, L1),
+  append_2(Part1, Part2, L1),
   proper_length(Part1, Part1Length),
   Part1Length > 1,
   reverse(Part1, Part1Inverted),
-  append(Part1Inverted, Part2, L2).
+  append_2(Part1Inverted, Part2, L2).
 
 is_sorted([]).
 is_sorted([_]).
@@ -42,7 +46,7 @@ is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
   % adds a new element to the end of the queue (basically just an append, but semantically explained better in the naming)
 
   queue_add([], Elements, Elements).
-  queue_add(L1, Elements, L2) :- append(L1, Elements, L2).
+  queue_add(L1, Elements, L2) :- append_2(L1, Elements, L2).
 
   % removes the next element from the queue and returns the updated queue
 
@@ -56,7 +60,7 @@ is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
     FirstPath = [StackOfPancakes],
     % to start, the fringe consists of just one path
     Fringe = [FirstPath],
-    % execute breadth first search for a solution 
+    % execute breadth first search for a solution
     flipper_breadth_first(Fringe, FlippingSolution).
 
   flipper_breadth_first([], _) :- fail.
