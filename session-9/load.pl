@@ -1,0 +1,2 @@
+:- consult(exercises).
+:- consult(pancakeswap).
