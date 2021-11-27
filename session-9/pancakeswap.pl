@@ -79,3 +79,59 @@ is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
     print(ExpandedFringe), nl,
     % attempt to flip again on the next element in the fringe
     flipper_breadth_first(ExpandedFringe, Solution),!.
+
+% depth-first pancake flipper
+
+  % first we need a stack instead
+
+    % adds a list of new elements to a stack
+
+    add(stack([]), Elements, stack(Elements)).
+    add(stack(L1), Elements, stack(L2)) :- append_2(L1, Elements, L2).
+
+    % removes the next element from a stack
+
+    remove(stack([]), _, _) :- fail.
+    remove(stack([path(H)|T]), path(H), stack(T)).
+
+    loop_free(path([])).
+    loop_free(path([CurrentState|PreviousStates])) :-
+      not(member(CurrentState, PreviousStates)).
+
+    remove_loops([], LoopFreePaths, LoopFreePaths).
+    remove_loops([path([CurrentState|PreviousStates])|OtherPaths], LoopFreePaths, Acc) :-
+      loop_free(path([CurrentState|PreviousStates])),
+      remove_loops(OtherPaths, LoopFreePaths, [path([CurrentState|PreviousStates])|Acc]).
+    remove_loops([path([CurrentState|PreviousStates])|OtherPaths], LoopFreePaths, Acc) :-
+      not(loop_free(path([CurrentState|PreviousStates]))),
+      remove_loops(OtherPaths, LoopFreePaths, Acc).
+
+  % then a new flipper
+
+  flipper2(StackOfPancakes, FlippingSolution) :-
+    % we use the pancake stack as the only element of a path to start from
+    FirstPath = [StackOfPancakes],
+    % to start, the fringe consists of just one path
+    Fringe = [FirstPath],
+    % execute breadth first search for a solution
+    flipper_breadth_first(Fringe, FlippingSolution).
+
+  % and a new implementation
+
+  flipper_depth_first([], _) :- fail.
+  flipper_depth_first(Fringe, path([GoalState|PreviousStates])) :-
+    remove(Fringe, path([GoalState|PreviousStates]), _),
+    is_sorted(GoalState),!.
+  flipper_depth_first(stack(Fringe), Solution) :-
+    % gets the next element to inspect
+    remove(stack(Fringe), path([CurrentState|PreviousStates]), stack(ShortenedFringe)),
+    % verifies that it is not fully sorted
+    not(is_sorted(CurrentState)),
+    % flip the stack of pancakes again when not sorted
+    findall(path([F,CurrentState|PreviousStates]), flip(CurrentState, F), NewPaths),
+    remove_loops(NewPaths, NewLoopFreePaths, []),
+    % after flipping, make sure to add this state to the queue
+    add(stack(ShortenedFringe), NewLoopFreePaths, ExpandedFringe),
+    print(ExpandedFringe), nl,
+    % attempt to flip again on the next element in the fringe
+    flipper_depth_first(ExpandedFringe, Solution),!.
