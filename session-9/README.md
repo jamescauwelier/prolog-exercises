@@ -41,23 +41,45 @@ false.
 
 ## Solution Approaches
 
-### Breadth-first
+### Breadth-first vs depth-first
+
+In my first attempts, I created a dedicated breadth-first implementation. Then I
+wanted to also explore a depth-first approach after which I have created a
+polymorphic implementation that can run both.
+
+#### Breadth-first example
 
 Running
 
 ```
-?- flipper([3,1,2], S).
+?- flipper(queue, [3,1,2], S).
 ```
 
-Returns (prints the fringe on every line and then a solution in the end):
+Returns
 
 ```
-[[[1,3,2],[3,1,2]],[[2,1,3],[3,1,2]]]
-[[[2,1,3],[3,1,2]],[[3,1,2],[1,3,2],[3,1,2]],[[2,3,1],[1,3,2],[3,1,2]]]
-[[[3,1,2],[1,3,2],[3,1,2]],[[2,3,1],[1,3,2],[3,1,2]],[[1,2,3],[2,1,3],[3,1,2]],[[3,1,2],[2,1,3],[3,1,2]]]
-[[[2,3,1],[1,3,2],[3,1,2]],[[1,2,3],[2,1,3],[3,1,2]],[[3,1,2],[2,1,3],[3,1,2]],[[1,3,2],[3,1,2],[1,3,2],[3,1,2]],[[2,1,3],[3,1,2],[1,3,2],[3,1,2]]]
-[[[1,2,3],[2,1,3],[3,1,2]],[[3,1,2],[2,1,3],[3,1,2]],[[1,3,2],[3,1,2],[1,3,2],[3,1,2]],[[2,1,3],[3,1,2],[1,3,2],[3,1,2]],[[3,2,1],[2,3,1],[1,3,2],[3,1,2]],[[1,3,2],[2,3,1],[1,3,2],[3,1,2]]]
-S = [[1, 2, 3], [2, 1, 3], [3, 1, 2]].
+queue([path([[2,1,3],[3,1,2]]),path([[1,3,2],[3,1,2]])])
+queue([path([[1,3,2],[3,1,2]]),path([[1,2,3],[2,1,3],[3,1,2]])])
+queue([path([[1,2,3],[2,1,3],[3,1,2]]),path([[2,3,1],[1,3,2],[3,1,2]])])
+S = path([[1, 2, 3], [2, 1, 3], [3, 1, 2]]).
+```
+
+#### Depth-first
+
+Running
+
+```
+?- flipper(stack, [3,1,2], S).
+```
+
+Returns
+
+```
+stack([path([[2,1,3],[3,1,2]]),path([[1,3,2],[3,1,2]])])
+stack([path([[1,2,3],[2,1,3],[3,1,2]]),path([[1,3,2],[3,1,2]])])
+S = path([[1, 2, 3], [2, 1, 3], [3, 1, 2]]).
 ```
 
 ### Using a heuristic
+
+TODO: I want to explore how I can also implement a greedy implementation of this

@@ -1,98 +1,85 @@
 % Pancake flipping challenge
 
-append_2([], L, L).
-append_2([H|T], L2, [H|L4]) :-
-  append_2(T, L2, L4).
+  % first we define some utilities
 
-% Generating problems
+    % implementing a simple append function
 
-countToN(0, R, R).
-countToN(N, R, Acc) :-
-  N > 0,
-  K is N - 1,
-  countToN(K, R, [N|Acc]).
+    append_2([], L, L).
+    append_2([H|T], L2, [H|L4]) :-
+      append_2(T, L2, L4).
 
-permutation([], P, P).
-permutation(L1, P, Acc) :-
-  member(M, L1),
-  delete(L1, M, L2),
-  permutation(L2, P, [M|Acc]).
+    % generates lists with counters of 1..n
 
-generateStacksOfSize(Size, Stacks) :-
-  countToN(Size, SortedStack, []),
-  findall(P, permutation(SortedStack, P, []), Stacks).
+    countToN(0, R, R).
+    countToN(N, R, Acc) :-
+      N > 0,
+      K is N - 1,
+      countToN(K, R, [N|Acc]).
 
-% naive Solution
+    % generates permutations of any list
 
-reverse(L, I) :- reverse_acc(L, I, []).
-reverse_acc([], I, I).
-reverse_acc([H|T], I, Acc) :-
-  reverse_acc(T, I, [H|Acc]).
+    permutation([], P, P).
+    permutation(L1, P, Acc) :-
+      member(M, L1),
+      delete(L1, M, L2),
+      permutation(L2, P, [M|Acc]).
 
-flip(L1, L2) :-
-  append_2(Part1, Part2, L1),
-  proper_length(Part1, Part1Length),
-  Part1Length > 1,
-  reverse(Part1, Part1Inverted),
-  append_2(Part1Inverted, Part2, L2).
+    % with the above, we can now generate any random stack of pancakes
 
-is_sorted([]).
-is_sorted([_]).
-is_sorted([H1, H2|_]) :- H1 >= H2, !, fail.
-is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
+    generateStacksOfSize(Size, Stacks) :-
+      countToN(Size, SortedStack, []),
+      findall(P, permutation(SortedStack, P, []), Stacks).
 
-% For breadth-first search, a queue is used, so lets build that first
+    % reversing a full list (important for the flipping action)
 
-  % adds a new element to the end of the queue (basically just an append, but semantically explained better in the naming)
+    reverse(L, I) :- reverse_acc(L, I, []).
+    reverse_acc([], I, I).
+    reverse_acc([H|T], I, Acc) :-
+      reverse_acc(T, I, [H|Acc]).
 
-  queue_add([], Elements, Elements).
-  queue_add(L1, Elements, L2) :- append_2(L1, Elements, L2).
+    % generates ways of flipping a stack of pancakes
 
-  % removes the next element from the queue and returns the updated queue
+    flip(L1, L2) :-
+      append_2(Part1, Part2, L1),
+      proper_length(Part1, Part1Length),
+      Part1Length > 1,
+      reverse(Part1, Part1Inverted),
+      append_2(Part1Inverted, Part2, L2).
 
-  queue_remove([], _, _) :- fail.
-  queue_remove([H|T], H, T).
+    % the end goal of the pancake swapping is a fully sorted stack, so here we test for that
 
-% naive_flipper(Fringe, Solution).
-
-  flipper(StackOfPancakes, FlippingSolution) :-
-    % we use the pancake stack as the only element of a path to start from
-    FirstPath = [StackOfPancakes],
-    % to start, the fringe consists of just one path
-    Fringe = [FirstPath],
-    % execute breadth first search for a solution
-    flipper_breadth_first(Fringe, FlippingSolution).
-
-  flipper_breadth_first([], _) :- fail.
-  flipper_breadth_first(Fringe, [GoalState|PreviousStates]) :-
-    queue_remove(Fringe, [GoalState|PreviousStates], _),
-    is_sorted(GoalState),!.
-  flipper_breadth_first(Fringe, Solution) :-
-    % gets the next element to inspect
-    queue_remove(Fringe, [CurrentState|PreviousStates], ShortenedFringe),
-    % verifies that it is not fully sorted
-    not(is_sorted(CurrentState)),
-    % flip the stack of pancakes again when not sorted
-    findall([F,CurrentState|PreviousStates], flip(CurrentState, F), NewStates),
-    % after flipping, make sure to add this state to the queue
-    queue_add(ShortenedFringe, NewStates, ExpandedFringe),
-    print(ExpandedFringe), nl,
-    % attempt to flip again on the next element in the fringe
-    flipper_breadth_first(ExpandedFringe, Solution),!.
+    is_sorted([]).
+    is_sorted([_]).
+    is_sorted([H1, H2|_]) :- H1 > H2, !, fail.
+    is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
 
 % depth-first pancake flipper
 
-  % first we need a stack instead
+  % underlying data structure
 
-    % adds a list of new elements to a stack
+    % adds a list of new elements to a datastructure
 
-    add(stack([]), Elements, stack(Elements)).
-    add(stack(L1), Elements, stack(L2)) :- append_2(L1, Elements, L2).
+      % stack
+      add(stack([]), Elements, stack(Elements)).
+      add(stack(L1), Elements, stack(L2)) :- append_2(Elements, L1, L2).
 
-    % removes the next element from a stack
+      % queue
+      add(queue([]), Elements, queue(Elements)).
+      add(queue(L1), Elements, queue(L2)) :- append_2(L1, Elements, L2).
 
-    remove(stack([]), _, _) :- fail.
-    remove(stack([path(H)|T]), path(H), stack(T)).
+    % removes the next element from a datastructure
+
+      % stack
+
+      remove(stack([]), _, _) :- fail.
+      remove(stack([path(H)|T]), path(H), stack(T)).
+
+      % queue
+
+      remove(queue([]), _, _) :- fail.
+      remove(queue([path(H)|T]), path(H), queue(T)).
+
+    % loop-checking is datastructure independent
 
     loop_free(path([])).
     loop_free(path([CurrentState|PreviousStates])) :-
@@ -106,32 +93,38 @@ is_sorted([H1, H2|T]) :- H1 =< H2, is_sorted([H2|T]).
       not(loop_free(path([CurrentState|PreviousStates]))),
       remove_loops(OtherPaths, LoopFreePaths, Acc).
 
-  % then a new flipper
+  % Can we make this polymorphic?
 
-  flipper2(StackOfPancakes, FlippingSolution) :-
-    % we use the pancake stack as the only element of a path to start from
-    FirstPath = [StackOfPancakes],
-    % to start, the fringe consists of just one path
-    Fringe = [FirstPath],
-    % execute breadth first search for a solution
-    flipper_breadth_first(Fringe, FlippingSolution).
+    % Start by abstracting the manipulations over the data structures
 
-  % and a new implementation
+      % for implementation, see above as these need to be together!!!
 
-  flipper_depth_first([], _) :- fail.
-  flipper_depth_first(Fringe, path([GoalState|PreviousStates])) :-
-    remove(Fringe, path([GoalState|PreviousStates]), _),
-    is_sorted(GoalState),!.
-  flipper_depth_first(stack(Fringe), Solution) :-
-    % gets the next element to inspect
-    remove(stack(Fringe), path([CurrentState|PreviousStates]), stack(ShortenedFringe)),
-    % verifies that it is not fully sorted
-    not(is_sorted(CurrentState)),
-    % flip the stack of pancakes again when not sorted
-    findall(path([F,CurrentState|PreviousStates]), flip(CurrentState, F), NewPaths),
-    remove_loops(NewPaths, NewLoopFreePaths, []),
-    % after flipping, make sure to add this state to the queue
-    add(stack(ShortenedFringe), NewLoopFreePaths, ExpandedFringe),
-    print(ExpandedFringe), nl,
-    % attempt to flip again on the next element in the fringe
-    flipper_depth_first(ExpandedFringe, Solution),!.
+    % Then adapt the algorithm to remove references to a specific data structure
+
+    flipper_poly([], _) :- fail.
+    flipper_poly(Fringe, path([GoalState|PreviousStates])) :-
+      remove(Fringe, path([GoalState|PreviousStates]), _),
+      is_sorted(GoalState),!.
+    flipper_poly(Fringe, Solution) :-
+      % gets the next element to inspect
+      remove(Fringe, path([CurrentState|PreviousStates]), ShortenedFringe),
+      % verifies that it is not fully sorted
+      not(is_sorted(CurrentState)),
+      % flip the stack of pancakes again when not sorted
+      findall(path([F,CurrentState|PreviousStates]), flip(CurrentState, F), NewPaths),
+      remove_loops(NewPaths, NewLoopFreePaths, []),
+      % after flipping, make sure to add this state to the queue
+      add(ShortenedFringe, NewLoopFreePaths, ExpandedFringe),
+      print(ExpandedFringe), nl,
+      % attempt to flip again on the next element in the fringe
+      flipper_poly(ExpandedFringe, Solution),!.
+
+    % implementations for depth-first and breadth-first
+
+    flipper(FringeImplementation, StackOfPancakes, FlippingSolution) :-
+      % we use the pancake stack as the only element of a path to start from
+      FirstPath = path([StackOfPancakes]),
+      % the fringe is composed of the implementation (stack or queue) and a list of paths
+      Fringe =.. [FringeImplementation|[[FirstPath]]],
+      % executing in the polymorphic flipper
+      flipper_poly(Fringe, FlippingSolution).
