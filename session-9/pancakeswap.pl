@@ -126,5 +126,6 @@
       FirstPath = path([StackOfPancakes]),
       % the fringe is composed of the implementation (stack or queue) and a list of paths
       Fringe =.. [FringeImplementation|[[FirstPath]]],
+      print(Fringe),nl,
       % executing in the polymorphic flipper
       flipper_poly(Fringe, FlippingSolution).
